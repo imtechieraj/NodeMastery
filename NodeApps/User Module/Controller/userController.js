@@ -2,11 +2,14 @@ const bcrypt = require('bcrypt');
 const { studentCollection } = require('../Models/dbschema');
 const async = require('async');
 const jwt = require('jsonwebtoken');
+const { secretkey } = require('../Config/index');
 
 const getUser = (req, res) => {
-
-    // Business find, delete
-    // res.send('Hello World!')
+    studentCollection.find({}, { password: 0 }).then((data) => {
+        res.send({ status: true, data });
+    }).catch((error) => {
+        res.status(500).send({ status: false, message: "Internal server error" });
+    });
 }
 
 const regUser = (req, res) => {
@@ -85,7 +88,7 @@ const loginUser = (req, res) => {
         (arg2, callback) => {
             // generate token
             let token = jwt.sign({
-                email: arg2.email
+                id: arg2._id,
             }, "secretkey", { expiresIn: '1h' });
             callback(null, token);
         },
@@ -100,8 +103,29 @@ const loginUser = (req, res) => {
     });
 }
 
+const updateUser = (req, res) => {
+    let { id } = req.headers;
+    studentCollection.updateOne({ _id: id }, { $set: req.body }).then((result) => {
+        res.status(200).send({ status: true, message: "Updated" });
+    }).catch((error) => {
+        res.status(500).send({ status: false, message: "Internal server error" });
+    })
+    console.log("controller here")
+}
+
+const deleteUser = (req, res) => {
+    let { id } = req.headers;
+    studentCollection.deleteOne({ _id: id }).then((result) => {
+        res.status(200).send({ status: true, message: "Deleted" });
+    }).catch((error) => {
+        res.status(500).send({ status: false, message: "Internal server error" });
+    })
+}
+
 module.exports = {
     getUser,
     regUser,
-    loginUser
+    loginUser,
+    updateUser,
+    deleteUser
 }

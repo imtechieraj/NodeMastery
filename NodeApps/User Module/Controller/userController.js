@@ -1,8 +1,25 @@
 const bcrypt = require('bcrypt');
 const { studentCollection } = require('../Models/dbschema');
 const async = require('async');
+const bunyan = require('bunyan');
+const path = require("path");
 const jwt = require('jsonwebtoken');
-const { secretkey } = require('../Config/index');
+
+const log =  bunyan.createLogger({
+    name: "UserModule",
+    streams: [
+        {
+            level: "info", // Log level
+            path: path.join(__dirname, "logs/app.log"), // Log file path
+        },
+        {
+            level: "error",
+            path: path.join(__dirname, "logs/error.log"),
+        },
+    ],
+});
+
+
 
 const getUser = (req, res) => {
     studentCollection.find({}, { password: 0 }).then((data) => {
@@ -54,6 +71,7 @@ const regUser = (req, res) => {
             res.send(err);
         } else {
             res.status(201).send(result);
+            log.info(req.body);
         }
     });
 }
